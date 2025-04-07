@@ -78,35 +78,36 @@ def gen_response(chain, input, chat_history):
         if "answer" in res.keys():
             yield res["answer"]
 
+# Streamlit 应用程序界面
 def main():
     st.markdown('### 🦜🔗 动手学大模型应用开发')
-    # st.session_state可以存储用户与应用交互期间的状态与数据
-    # 存储对话历史
+
+    # 用于跟踪对话历史
     if "messages" not in st.session_state:
         st.session_state.messages = []
     # 存储检索问答链
     if "qa_history_chain" not in st.session_state:
         st.session_state.qa_history_chain = get_qa_history_chain()
-    # 建立容器 高度为500 px
     messages = st.container(height=550)
     # 显示整个对话历史
-    for message in st.session_state.messages: # 遍历对话历史
-            with messages.chat_message(message[0]): # messages指在容器下显示，chat_message显示用户及ai头像
-                st.write(message[1]) # 打印内容
+    for message in st.session_state.messages:
+            with messages.chat_message(message[0]):
+                st.write(message[1])
     if prompt := st.chat_input("Say something"):
         # 将用户输入添加到对话历史中
         st.session_state.messages.append(("human", prompt))
-        # 显示当前用户输入
         with messages.chat_message("human"):
             st.write(prompt)
-        # 生成回复
+
         answer = gen_response(
             chain=st.session_state.qa_history_chain,
             input=prompt,
             chat_history=st.session_state.messages
         )
-        # 流式输出
         with messages.chat_message("ai"):
             output = st.write_stream(answer)
-        # 将输出存入st.session_state.messages
         st.session_state.messages.append(("ai", output))
+
+
+if __name__ == "__main__":
+    main()
